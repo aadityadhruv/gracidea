@@ -1,0 +1,13 @@
+[package]
+name = "gracidea"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "A Calendar TUI interface for CalDAV"
+homepage = "https://git.spacejunk.sh/gracidea.git"
+repository = "https://git.spacejunk.sh/gracidea.git"
+readme = "README.md"
+
+[dependencies]
+clap = "4.5.40"
+ratatui = "0.29.0"
