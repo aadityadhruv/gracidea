@@ -1,3 +1,3 @@
 ### Gracidea
 
-A Calendar TUI interface for CalDAV
+A Pokemon Save editor, inspired by PKHex
