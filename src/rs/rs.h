@@ -23,6 +23,8 @@
 struct section_t {
     // The data for a particular section, such as Trainer Info
     char data[3968];
+    // Padding for 4KB
+    char padding[116];
     // Section ID corresponding to above data. Ranges from 0 to 13
     __u16 section_id;
     // Checksum for above data
@@ -32,8 +34,6 @@ struct section_t {
     // Monotonically increasing index that is same for all sections in a save
     // index
     __u32 save_index;
-    // Padding for 4KB
-    char padding[128];
 };
 
 
@@ -155,4 +155,4 @@ struct file {
     struct recorded_battle battle;
 };
 
-void load_file(char* path);
+void load_save_file(char* path, struct file** fp);

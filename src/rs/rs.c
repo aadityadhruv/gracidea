@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void load_file(char* path) {
+void load_save_file(char* path, struct file** fp) {
     fprintf(stderr, "Opening file\n");
     FILE *f = fopen(path, "rb");
     fprintf(stderr, "Getting length of file\n");
@@ -18,6 +18,5 @@ void load_file(char* path) {
     fclose(f);
     fprintf(stderr, "reading complete\n");
 
-    struct file* save_file = (struct file*) buffer;
-    struct trainer_info* info = (struct trainer_info*) save_file->save_a[0].data;
+    *fp = (struct file*) buffer;
 }
