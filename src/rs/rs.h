@@ -14,6 +14,8 @@
  *
  */
 
+#define NUMBER_OF_SECTIONS 14
+
 /**
  * struct section_t - A save file has 14 sections, each containing data about a
  * part of a save file, such as the trainer information, teams, PC buffers, etc.
@@ -65,14 +67,14 @@ struct pokemon {
 
 // SECTION 0
 struct trainer_info {
-    // Namme of the player
-    char name[7];
+    // Namme of the player - 7 chars, 8th is always 0xff
+    char name[8];
     // 0x00 is boy 0x01 is girl
     char gender[1];
     // Unused byte
     char blank[1];
     // Upper 16 bits are public ID, lower 16 bits are secret ID
-    __u32 trainer_id[4];
+    __u32 trainer_id;
     // Hours, minutes, seconds and frames (1/60th of sec). Hours is 16 bit
     char time_played[5];
     // Menu Options
@@ -156,3 +158,5 @@ struct file {
 };
 
 void load_save_file(char* path, struct file** fp);
+struct trainer_info* get_trainer_info(struct file* fp);
+struct player_team* get_player_team(struct file* fp);
