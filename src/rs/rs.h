@@ -61,7 +61,6 @@ struct pokemon {
     __u16 spd;
     __u16 sp_atk;
     __u16 sp_def;
-    char padding[2];
 };
 
 
@@ -100,7 +99,8 @@ struct player_team {
     __u32 money;
     // XOR with lower 2 bytes of security key to get real value
     __u16 coins;
-    struct item pc_items[40];
+    char padding[2];
+    struct item pc_items[50];
     struct item items[20];
     struct item key_items[20];
     struct item balls[16];
