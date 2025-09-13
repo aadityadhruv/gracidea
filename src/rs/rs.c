@@ -3,6 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <endian.h>
+#include <string.h>
+
+
+void __itemtole(struct item* item);
+void __pokemontole(struct pokemon* pokemon);
+char __character_map(__u8 c);
+int __get_section_offset_step(int target, int cur);
 
 void __itemtole(struct item* item) {
     item->index = htole16(item->index);
@@ -21,10 +28,41 @@ void __pokemontole(struct pokemon* pokemon) {
     pokemon->spd = htole16(pokemon->spd);
     pokemon->sp_atk = htole16(pokemon->sp_atk);
     pokemon->sp_def = htole16(pokemon->sp_def);
+
+    for (int i = 0; i < sizeof(pokemon->nickname); i++) {
+        pokemon->nickname[i] = __character_map(pokemon->nickname[i]);
+    }
+    for (int i = 0; i < sizeof(pokemon->ot); i++) {
+        pokemon->ot[i] = __character_map(pokemon->ot[i]);
+    }
 }
 // Convert Gen III RS character encoding (Western boards)
-char __character_map(char c) {
-    return 'a';
+char __character_map(__u8 c) {
+    char map[256];
+    memset(map, 0, 256);
+    // Number 0-9 conversion
+    for (int i = 0; i < 10; i++) {
+        map[0xA1 + i] = ('0' + i);
+    }
+    // Alphabet conversion
+    for (int i = 0; i < 26; i++) {
+        // Upper case indices
+        map[0xBB + i] = ('A' + i);
+        // Lower case indices
+        map[0xD5 + i] = ('a' + i);
+    }
+    // Symbols
+    map[0xAB] = '!';
+    map[0xAC] = '?';
+    map[0xAD] = '.';
+    map[0xAE] = '-';
+    map[0xB1] = '"';
+    map[0xB2] = '"'; //TODO: Region difference
+    map[0xB3] = '`';
+    map[0xB4] = '\'';
+    // NULL TERMINATION OF STRINGS
+    map[0xff] = 0;
+    return map[c];
 }
 
 // Get position in save file for a target section
@@ -60,7 +98,11 @@ struct trainer_info* get_trainer_info(struct file* fp) {
     int idx = fp->save_a[0].section_id;
     int trainer_idx = __get_section_offset_step(0, idx);
     struct trainer_info* ti = (struct trainer_info*) (fp->save_a[trainer_idx].data);
-ti->trainer_id = htole32(ti->trainer_id);
+    ti->trainer_id = htole32(ti->trainer_id);
+    // Decode name string
+    for (int i = 0; i < sizeof(ti->name); i++) {
+        ti->name[i] = __character_map(ti->name[i]);
+    }
     return ti;
 }
 
