@@ -1,3 +1,4 @@
+#pragma once
 #include <linux/types.h>
 /* Gen III Save Data Structure
  * This includes Pokemon Ruby and Pokemon Sapphire
