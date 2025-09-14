@@ -1,4 +1,6 @@
 #include "util.h"
+#include "rs.h"
+#include <endian.h>
 #include <string.h>
 
 void __itemtole(struct item* item) {
@@ -62,3 +64,74 @@ int __get_section_offset_step(int target, int cur) {
     return ((target - cur) + NUMBER_OF_SECTIONS) % NUMBER_OF_SECTIONS;
 }
 
+void __poke_growthtole(struct poke_growth* poke_growth) {
+    poke_growth->species = htole16(poke_growth->species);
+    poke_growth->held_item = htole16(poke_growth->held_item);
+    poke_growth->exp = htole32(poke_growth->exp);
+}
+void __poke_attacktole(struct poke_attack* poke_attack) {
+    for (int i = 0; i < sizeof(poke_attack->moves); i++) {
+        poke_attack->moves[i] = htole16(poke_attack->moves[i]);
+    }
+}
+void __poke_misctole(struct poke_misc* poke_misc) {
+    poke_misc->origin = htole16(poke_misc->origin);
+    poke_misc->iv_egg_ability = htole32(poke_misc->iv_egg_ability);
+    poke_misc->ribbons = htole32(poke_misc->ribbons);
+}
+
+
+void __decrypt_poke_data(struct pokemon* pokemon) {
+    __u32 key = pokemon->ot_id ^ pokemon->personality;
+    __u32* data = (__u32*)&pokemon->data;
+    for (int i = 0; i < 3*4; i++) {
+        data[i] ^= key;
+    }
+}
+struct poke_growth* get_poke_growth(struct pokemon* pokemon) {
+    __u8 map[24] = {
+        0, 0, 0, 0, 0, 0,
+        1, 1, 2, 3, 2, 3,
+        1, 1, 2, 3, 2, 3,
+        1, 1, 2, 3, 2, 3
+    };
+    __u8 idx = map[pokemon->personality % 24];
+    struct poke_growth* pg = (struct poke_growth*) &pokemon->data[idx];
+    __poke_growthtole(pg);
+    return pg;
+}
+struct poke_attack* get_poke_attack(struct pokemon* pokemon) {
+    __u8 map[24] = {
+        1, 1, 2, 3, 2, 3,
+        0, 0, 0, 0, 0, 0,
+        2, 3, 1, 1, 3, 2,
+        2, 3, 1, 1, 3, 2,
+    };
+    __u8 idx = map[pokemon->personality % 24];
+    struct poke_attack* patk = (struct poke_attack*) &pokemon->data[idx];
+    __poke_attacktole(patk);
+    return patk;
+}
+struct poke_ev* get_poke_ev(struct pokemon* pokemon) {
+    __u8 map[24] = {
+        2, 3, 1, 1, 3, 2, 
+        2, 3, 1, 1, 3, 2, 
+        0, 0, 0, 0, 0, 0, 
+        3, 3, 3, 2, 1, 1, 
+    };
+    __u8 idx = map[pokemon->personality % 24];
+    struct poke_ev* pev = (struct poke_ev*) &pokemon->data[idx];
+    return pev;
+}
+struct poke_misc* get_poke_misc(struct pokemon* pokemon) {
+    __u8 map[24] = {
+        3, 2, 3, 2, 1, 1, 
+        3, 2, 3, 2, 1, 1, 
+        3, 2, 3, 2, 1, 1, 
+        0, 0, 0, 0, 0, 0,
+    };
+    __u8 idx = map[pokemon->personality % 24];
+    struct poke_misc* pmisc = (struct poke_misc*) &pokemon->data[idx];
+    __poke_misctole(pmisc);
+    return pmisc;
+}

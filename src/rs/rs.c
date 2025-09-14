@@ -65,8 +65,11 @@ struct player_team* get_player_team(struct file* fp) {
     for (int i = 0; i < 46; i++) {
         __itemtole(&team->berries[i]);
     }
+    // Pokemon conversion
     for (int i = 0; i < 6; i++) {
+        // Convert to LE
         __pokemontole(&team->pokemon[i]);
+        __decrypt_poke_data(&team->pokemon[i]);
     }
     return team;
 }

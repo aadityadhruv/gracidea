@@ -7,4 +7,8 @@ int main(int argc, char** argv) {
     load_save_file(argv[1], &fp);
     struct trainer_info* trainer = get_trainer_info(fp);
     struct player_team* team = get_player_team(fp);
+
+    struct poke_attack* p;
+    struct poke_growth* p2;
+    struct poke_data_t* p3;
 }

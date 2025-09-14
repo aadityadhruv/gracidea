@@ -40,6 +40,46 @@ struct section_t {
 };
 
 
+// 12 byte substructure in pokemon.data
+struct poke_data_t {
+    char data[12];
+};
+
+struct poke_growth {
+    __u16 species;
+    __u16 held_item;
+    __u32 exp;
+    __u8 pp_bonus;
+    __u8 friendship;
+    char padding[2];
+};
+struct poke_attack {
+    __u16 moves[4];
+    __u8 pp[4];
+};
+struct poke_ev {
+    __u8 hp;
+    __u8 atk;
+    __u8 def;
+    __u8 spd;
+    __u8 spatk;
+    __u8 spdef;
+    __u8 cool;
+    __u8 beaut;
+    __u8 cute;
+    __u8 smart;
+    __u8 tough;
+    __u8 feel;
+};
+
+struct poke_misc {
+    __u8 pokerus;
+    __u8 met;
+    __u16 origin;
+    __u32 iv_egg_ability;
+    __u32 ribbons;
+};
+
 // Pokemon Structure
 struct pokemon {
     __u32 personality;
@@ -51,7 +91,7 @@ struct pokemon {
     __u8 markings;
     __u16 checksum;
     __u16 blank;
-    __u8 data[48];
+    struct poke_data_t data[4];
     __u32 status;
     __u8 level;
     __u8 mail_id;
