@@ -81,6 +81,12 @@ void __poke_misctole(struct poke_misc* poke_misc) {
     poke_misc->ribbons = htole32(poke_misc->ribbons);
 }
 
+/**
+ * @brief Validate a Pokemon's data
+ *
+ * @param pokemon: The pokemon to verify
+ * @return 0 on valid Pokemon, non-zero value if "Bad egg"
+ */
 __u8 __check_pokemon_chksum(struct pokemon* pokemon) {
     __u16 chk = 0;
     __u16* data = (__u16*)&pokemon->data;

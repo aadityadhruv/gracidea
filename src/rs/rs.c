@@ -1,7 +1,9 @@
 #include "rs.h"
 #include <assert.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <endian.h>
+#include <string.h>
 #include "util.h"
 
 
@@ -75,3 +77,29 @@ struct player_team* get_player_team(struct file* fp) {
     return team;
 }
 
+struct pc_buffer* get_pc(struct file* fp) {
+    // Calculate offset
+    int idx = fp->save_a[0].section_id;
+    // 9 sections, each 4096 bytes long
+    char buf[4096 * 9];
+    memset(buf, 1, sizeof(buf));
+    size_t offset = 0;
+    for (int i = 5; i <= 13; i++) {
+        int box_idx = __get_section_offset_step(i, idx);
+        memcpy(buf + offset, &fp->save_a[box_idx], sizeof(struct section_t));
+        offset += sizeof(struct section_t);
+    }
+    struct pc_buffer* pc = (struct pc_buffer*) buf;
+    pc->box_idx = htole32(pc->box_idx);
+    for (int i = 0; i < sizeof(pc->pokemon) / sizeof(struct pc_pokemon); i++) {
+        fprintf(stderr, "Processing Pokemon %d\n", i);
+        char tmp[sizeof(struct pokemon)];
+        memset(tmp, 0, sizeof(struct pokemon));
+        memcpy(tmp, &pc->pokemon[i], sizeof(struct pc_pokemon));
+        __pokemontole((struct pokemon*)tmp);
+        memcpy(&pc->pokemon[i], tmp, sizeof(struct pc_pokemon));
+        __decrypt_poke_data((struct pokemon*)&pc->pokemon[i]);
+        __check_pokemon_chksum((struct pokemon*) &pc->pokemon[i]);
+    }
+    return pc;
+}

@@ -163,12 +163,24 @@ struct game_data {
 };
 
 // SECTION 5 - 13
+struct pc_pokemon {
+    __u32 personality;
+    __u32 ot_id;
+    char nickname[10];
+    __u8 lang;
+    __u8 flags;
+    char ot[7];
+    __u8 markings;
+    __u16 checksum;
+    __u16 blank;
+    struct poke_data_t data[4];
+};
 
 struct pc_buffer {
     // zero indexed
     __u32 box_idx;
     // Left to right, top to bottom order
-    char pokemon[33600];
+    struct pc_pokemon pokemon[420];
     // 9 bytes each, each name can be from 1 to 8 chars
     char box_names[126];
     // 1 byte for each wallpaper
@@ -201,3 +213,4 @@ struct file {
 void load_save_file(char* path, struct file** fp);
 struct trainer_info* get_trainer_info(struct file* fp);
 struct player_team* get_player_team(struct file* fp);
+struct pc_buffer* get_pc(struct file* fp);
