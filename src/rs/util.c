@@ -1,5 +1,6 @@
 #include "util.h"
 #include "rs.h"
+#include <assert.h>
 #include <endian.h>
 #include <string.h>
 
@@ -80,6 +81,14 @@ void __poke_misctole(struct poke_misc* poke_misc) {
     poke_misc->ribbons = htole32(poke_misc->ribbons);
 }
 
+__u8 __check_pokemon_chksum(struct pokemon* pokemon) {
+    __u16 chk = 0;
+    __u16* data = (__u16*)&pokemon->data;
+    for (int i = 0; i < 3*4*2; i++) {
+        chk += htole16(data[i]);
+    }
+    return (chk == pokemon->checksum);
+}
 
 void __decrypt_poke_data(struct pokemon* pokemon) {
     __u32 key = pokemon->ot_id ^ pokemon->personality;

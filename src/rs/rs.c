@@ -70,6 +70,7 @@ struct player_team* get_player_team(struct file* fp) {
         // Convert to LE
         __pokemontole(&team->pokemon[i]);
         __decrypt_poke_data(&team->pokemon[i]);
+        __check_pokemon_chksum(&team->pokemon[i]);
     }
     return team;
 }

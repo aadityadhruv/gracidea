@@ -9,6 +9,7 @@ void __poke_attacktole(struct poke_attack* poke_attack);
 void __poke_evtole(struct poke_ev* poke_ev);
 void __poke_misctole(struct poke_misc* poke_misc);
 void __decrypt_poke_data(struct pokemon* pokemon);
+__u8 __check_pokemon_chksum(struct pokemon* pokemon);
 struct poke_growth* get_poke_growth(struct pokemon* pokemon);
 struct poke_attack* get_poke_attack(struct pokemon* pokemon);
 struct poke_ev* get_poke_ev(struct pokemon* pokemon);
