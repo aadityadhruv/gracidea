@@ -5,6 +5,7 @@
 
 
 extern char* file_path;
+extern char* pokemon_name_list[];
 
 void rs_box_view(int num) {
     struct file* fp;
@@ -18,8 +19,9 @@ void rs_box_view(int num) {
         struct pc_pokemon pkmn = offset[i];
         __u16 id = pkmn.ot_id >> 16;
         __u16 sid = pkmn.ot_id & 0x00ff;
-        fprintf(stdout, "ID: %d: Name: %s, OT: %s, ID/SID: %05d/%05d | ", i, pkmn.nickname, pkmn.ot, id, sid);
+        fprintf(stderr, "ID: %d: Name: %s, OT: %s, ID/SID: %05d/%05d | ", i, pkmn.nickname, pkmn.ot, id, sid);
         struct poke_growth* info = get_poke_growth((struct pokemon*) &pkmn);
-        fprintf(stdout, "Species: %x, Item: %x\n", info->species, info->held_item);
+        char* name = pokemon_name_list[info->species];
+        fprintf(stderr, "Species: %s, Item: %x\n", name, info->held_item);
     }
 }
