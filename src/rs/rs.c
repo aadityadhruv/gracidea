@@ -92,7 +92,7 @@ struct pc_buffer* get_pc(struct file* fp) {
     struct pc_buffer* pc = (struct pc_buffer*) buf;
     pc->box_idx = htole32(pc->box_idx);
     for (int i = 0; i < sizeof(pc->pokemon) / sizeof(struct pc_pokemon); i++) {
-        fprintf(stderr, "Processing Pokemon %d\n", i);
+        // fprintf(stderr, "Processing Pokemon %d\n", i);
         char tmp[sizeof(struct pokemon)];
         memset(tmp, 0, sizeof(struct pokemon));
         memcpy(tmp, &pc->pokemon[i], sizeof(struct pc_pokemon));

@@ -6,7 +6,6 @@ void __itemtole(struct item* item);
 void __pokemontole(struct pokemon* pokemon);
 void __poke_growthtole(struct poke_growth* poke_growth);
 void __poke_attacktole(struct poke_attack* poke_attack);
-void __poke_evtole(struct poke_ev* poke_ev);
 void __poke_misctole(struct poke_misc* poke_misc);
 void __decrypt_poke_data(struct pokemon* pokemon);
 __u8 __check_pokemon_chksum(struct pokemon* pokemon);
