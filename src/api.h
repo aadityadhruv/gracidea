@@ -6,7 +6,7 @@ struct pokeapi {
     void (*box_edit)(int num, int idx);
     void (*box_new)(int num, int idx, struct g_pokemon*);
 
-    void (*party_view);
+    void (*party_view)();
     void (*party_edit)(int idx);
     void (*party_new)(int idx, struct g_pokemon*);
 

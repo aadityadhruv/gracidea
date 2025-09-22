@@ -86,8 +86,10 @@ struct pc_buffer* get_pc(struct file* fp) {
     size_t offset = 0;
     for (int i = 5; i <= 13; i++) {
         int box_idx = __get_section_offset_step(i, idx);
-        memcpy(buf + offset, &fp->save_a[box_idx], sizeof(struct section_t));
-        offset += sizeof(struct section_t);
+        memcpy(buf + offset, &fp->save_a[box_idx], 3968);
+        offset += 3968; //TODO: Need to remove hardcode, all sections except
+                        //last is 3968, last is 2000. We cannot use 4096 bytes
+                        //because padding towards end messes with pkmn data
     }
     struct pc_buffer* pc = (struct pc_buffer*) buf;
     pc->box_idx = htole32(pc->box_idx);

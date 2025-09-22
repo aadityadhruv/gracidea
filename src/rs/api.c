@@ -25,3 +25,20 @@ void rs_box_view(int num) {
         fprintf(stderr, "Species: %s, Item: %x\n", name, info->held_item);
     }
 }
+void rs_party_view() {
+    struct file* fp;
+    load_save_file(file_path, &fp);
+    // struct trainer_info* trainer = get_trainer_info(fp);
+    // struct player_team* team = get_player_team(fp);
+    struct player_team* team = get_player_team(fp);
+
+    for (int i = 0; i < 6; i++) {
+        struct pokemon pkmn = team->pokemon[i];
+        __u16 id = pkmn.ot_id >> 16;
+        __u16 sid = pkmn.ot_id & 0x00ff;
+        fprintf(stderr, "ID: %d: Name: %s, OT: %s, ID/SID: %05d/%05d | ", i, pkmn.nickname, pkmn.ot, id, sid);
+        struct poke_growth* info = get_poke_growth((struct pokemon*) &pkmn);
+        char* name = pokemon_name_list[info->species];
+        fprintf(stderr, "Species: %s, Item: %x\n", name, info->held_item);
+    }
+}
