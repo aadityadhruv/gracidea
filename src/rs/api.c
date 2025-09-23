@@ -6,6 +6,7 @@
 
 extern char* file_path;
 extern char* pokemon_name_list[];
+extern char* items_names_list[];
 
 void rs_box_view(int num) {
     struct file* fp;
@@ -22,7 +23,8 @@ void rs_box_view(int num) {
         fprintf(stderr, "ID: %d: Name: %s, OT: %s, ID/SID: %05d/%05d | ", i, pkmn.nickname, pkmn.ot, id, sid);
         struct poke_growth* info = get_poke_growth((struct pokemon*) &pkmn);
         char* name = pokemon_name_list[info->species];
-        fprintf(stderr, "Species: %s, Item: %x\n", name, info->held_item);
+        char* item = items_names_list[info->held_item];
+        fprintf(stderr, "Species: %s, Item: %s\n", name, item);
     }
 }
 void rs_party_view() {
@@ -39,6 +41,7 @@ void rs_party_view() {
         fprintf(stderr, "ID: %d: Name: %s, OT: %s, ID/SID: %05d/%05d | ", i, pkmn.nickname, pkmn.ot, id, sid);
         struct poke_growth* info = get_poke_growth((struct pokemon*) &pkmn);
         char* name = pokemon_name_list[info->species];
-        fprintf(stderr, "Species: %s, Item: %x\n", name, info->held_item);
+        char* item = items_names_list[info->held_item];
+        fprintf(stderr, "Species: %s, Item: %s\n", name, item);
     }
 }
