@@ -57,3 +57,60 @@ void rs_party_view() {
         fprintf(stderr, "Species: %s, Item: %s\n", name, item);
     }
 }
+
+void rs_bag_view(int num) {
+    struct file* fp;
+    load_save_file(file_path, &fp);
+    struct player_team* team = get_player_team(fp);
+    switch (num) {
+        case 0:
+            fprintf(stdout, "Items\n");
+            for (int i = 0; i < sizeof(team->items); i++) {
+                if (team->items[i].index == 0x00) {
+                    break;
+                }
+                fprintf(stdout, "Item: %s, Quantity: %d\n", items_names_list[team->items[i].index], team->items[i].quantity);
+            }
+            break;
+
+        case 1:
+            fprintf(stdout, "Key Items\n");
+            for (int i = 0; i < sizeof(team->key_items); i++) {
+                if (team->key_items[i].index == 0x00) {
+                    break;
+                }
+                fprintf(stdout, "Item: %s, Quantity: %d\n", items_names_list[team->key_items[i].index], team->key_items[i].quantity);
+            }
+            break;
+        case 2:
+            fprintf(stdout, "Balls\n");
+            for (int i = 0; i < sizeof(team->balls); i++) {
+                if (team->balls[i].index == 0x00) {
+                    break;
+                }
+                fprintf(stdout, "Item: %s, Quantity: %d\n", items_names_list[team->balls[i].index], team->balls[i].quantity);
+            }
+            break;
+        case 3:
+            fprintf(stdout, "TMs\n");
+            for (int i = 0; i < sizeof(team->tms); i++) {
+                if (team->tms[i].index == 0x00) {
+                    break;
+                }
+                fprintf(stdout, "Item: %s, Quantity: %d\n", items_names_list[team->tms[i].index], team->tms[i].quantity);
+            }
+            break;
+        case 4:
+            fprintf(stdout, "Berries\n");
+            for (int i = 0; i < sizeof(team->berries); i++) {
+                if (team->berries[i].index == 0x00) {
+                    break;
+                }
+                fprintf(stdout, "Item: %s, Quantity: %d\n", items_names_list[team->berries[i].index], team->berries[i].quantity);
+            }
+            break;
+
+        default:
+            fprintf(stdout, "Incorrect bag index number specified.");
+    }
+}

@@ -71,4 +71,14 @@ int handle_party(int argc, char *action, char **params) {
     }
     return 0;
 }
-int handle_bag(int argc, char *action, char **params) {return 0;}
+int handle_bag(int argc, char *action, char **params) {
+    if (strcmp(action, "view") == 0) {
+        assert(argc == 1);
+        int section = atoi(params[0]);
+        api->bag_view(section);
+    }
+    else {
+        fprintf(stderr, "Invalid fields to party mode - action \"%s\"\n", action);
+    }
+    return 0;
+}
