@@ -15,7 +15,6 @@
  *
  */
 
-#define NUMBER_OF_SECTIONS 14
 
 /**
  * struct section_t - A save file has 14 sections, each containing data about a
@@ -214,3 +213,5 @@ void load_save_file(char* path, struct file** fp);
 struct trainer_info* get_trainer_info(struct file* fp);
 struct player_team* get_player_team(struct file* fp);
 struct pc_buffer* get_pc(struct file* fp);
+
+int save_file(struct file* fp);

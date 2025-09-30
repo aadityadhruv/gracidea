@@ -10,6 +10,6 @@ struct pokeapi {
     void (*party_edit)(int idx);
     void (*party_new)(int idx, struct g_pokemon*);
 
-    void (*bag_view)(int section);
-    void (*bag_new)(int item, int quantity);
+    void (*bag_view)(char* section);
+    void (*bag_new)(char* item, int quantity);
 };

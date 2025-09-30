@@ -4,6 +4,12 @@
 #include <endian.h>
 #include <string.h>
 
+void decode_string(char* input, int size, char* output) {
+    for (int i = 0; i < size; i++) {
+        output[i] = __character_map(input[i]);
+    }
+}
+
 void __itemtole(struct item* item) {
     item->index = htole16(item->index);
     item->quantity = htole16(item->quantity);
@@ -22,12 +28,6 @@ void __pokemontole(struct pokemon* pokemon) {
     pokemon->sp_atk = htole16(pokemon->sp_atk);
     pokemon->sp_def = htole16(pokemon->sp_def);
 
-    for (int i = 0; i < sizeof(pokemon->nickname); i++) {
-        pokemon->nickname[i] = __character_map(pokemon->nickname[i]);
-    }
-    for (int i = 0; i < sizeof(pokemon->ot); i++) {
-        pokemon->ot[i] = __character_map(pokemon->ot[i]);
-    }
 }
 // Convert Gen III RS character encoding (Western boards)
 char __character_map(__u8 c) {
@@ -97,6 +97,13 @@ __u8 __check_pokemon_chksum(struct pokemon* pokemon) {
 }
 
 void __decrypt_poke_data(struct pokemon* pokemon) {
+    __u32 key = pokemon->ot_id ^ pokemon->personality;
+    __u32* data = (__u32*)&pokemon->data;
+    for (int i = 0; i < 3*4; i++) {
+        data[i] ^= key;
+    }
+}
+void __encrypt_poke_data(struct pokemon* pokemon) {
     __u32 key = pokemon->ot_id ^ pokemon->personality;
     __u32* data = (__u32*)&pokemon->data;
     for (int i = 0; i < 3*4; i++) {

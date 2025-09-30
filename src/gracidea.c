@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
         .party_new = NULL,
         .party_edit = NULL,
         .bag_view = rs_bag_view,
-        .bag_new = NULL,
+        .bag_new = rs_bag_new,
     };
 
     api = &rsapi;
