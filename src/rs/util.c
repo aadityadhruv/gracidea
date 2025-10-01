@@ -95,6 +95,14 @@ __u8 __check_pokemon_chksum(struct pokemon* pokemon) {
     }
     return (chk == pokemon->checksum);
 }
+void __gen_pokemon_chksum(struct pokemon* pokemon) {
+    __u16 chk = 0;
+    __u16* data = (__u16*)&pokemon->data;
+    for (int i = 0; i < 3*4*2; i++) {
+        chk += htole16(data[i]);
+    }
+    pokemon->checksum = chk;
+}
 
 void __decrypt_poke_data(struct pokemon* pokemon) {
     __u32 key = pokemon->ot_id ^ pokemon->personality;

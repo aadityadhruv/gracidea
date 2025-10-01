@@ -197,9 +197,14 @@ struct hof_pokemon {
 struct hall_of_fame {
     // 50 teams of 6 pokemon can be stored
     struct hof_pokemon teams[300];
+    char padding[2192];
 };
-struct mystery_gift {};
-struct recorded_battle {};
+struct mystery_gift {
+    char buf[4096];
+};
+struct recorded_battle {
+    char buf[4096];
+};
 
 struct file {
     struct section_t save_a[14];
@@ -214,4 +219,28 @@ struct trainer_info* get_trainer_info(struct file* fp);
 struct player_team* get_player_team(struct file* fp);
 struct pc_buffer* get_pc(struct file* fp);
 
+enum category {
+    BAD_CATEGORY,
+    ITEM_CATEGORY,
+    KEY_ITEM_CATEGORY,
+    BALL_CATEGORY,
+    TM_CATEGORY,
+    BERRY_CATEGORY,
+};
+struct rs_item {
+    char* name;
+    __u8 bag_category;
+    __u16 id;
+    __u16 quantity;
+};
+
+int __save_pc(struct pc_buffer* pc, struct file *fp);
+int __save_team(struct player_team* pc, struct file *fp);
+int __save_trainer_info(struct trainer_info* pc, struct file *fp);
+
 int save_file(struct file* fp);
+
+// Public functions to use to operate on a struct file
+
+int get_bag_items(struct file* fp, enum category category, struct rs_item** item);
+int set_bag_item(struct file* fp, struct rs_item* item);
