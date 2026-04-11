@@ -8,7 +8,7 @@
 
 extern char* file_path;
 extern char* pokemon_name_list[];
-extern struct rs_item items_names_list[];
+extern const struct rs_item items_names_list[];
 
 void rs_box_view(int num) {
     if (num < 0 || num > 14) {
@@ -39,7 +39,7 @@ void rs_box_view(int num) {
         decode_string(pkmn.ot, sizeof(pkmn.ot), ot);
         fprintf(stderr, "ID: %d: Name: %s, OT: %s, ID/SID: %05d/%05d | ", i, nickname, ot, id, sid);
         char* name = pokemon_name_list[info->species];
-        struct rs_item* item = &items_names_list[info->held_item];
+        const struct rs_item* item = &items_names_list[info->held_item];
         fprintf(stderr, "Species: %s, Item: %s\n", name, item->name);
     }
     free(pc);
@@ -65,7 +65,7 @@ void rs_party_view() {
         decode_string(pkmn.ot, sizeof(pkmn.ot), ot);
         fprintf(stderr, "ID: %d: Name: %s, OT: %s, ID/SID: %05d/%05d | ", i, nickname, ot, id, sid);
         char* name = pokemon_name_list[info->species];
-        struct rs_item* item = &items_names_list[info->held_item];
+        const struct rs_item* item = &items_names_list[info->held_item];
         fprintf(stderr, "Species: %s, Item: %s\n", name, item->name);
     }
 }
@@ -107,11 +107,11 @@ void rs_bag_view(char* section) {
 }
 
 void rs_bag_new(char *item, int quantity) {
-    struct rs_item* target = NULL;
+    struct rs_item* target = (struct rs_item*) malloc(sizeof(struct rs_item));
     for (int i = 0; i < 0; i++) {
-        struct rs_item* list_item = &items_names_list[i];
+        const struct rs_item* list_item = &items_names_list[i];
         if (strcmp(list_item->name, item) == 0) {
-            target = list_item;
+            memcpy(target, list_item, sizeof(struct rs_item));
             break;
         }
     }

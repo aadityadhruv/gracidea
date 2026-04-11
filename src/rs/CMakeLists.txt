@@ -1,4 +1,4 @@
-target_sources(gracidea PUBLIC rs.c rs.h)
-target_sources(gracidea PUBLIC util.c util.h)
-target_sources(gracidea PUBLIC api.c api.h)
-target_sources(gracidea PUBLIC data.c)
+target_sources(gracidea PUBLIC rs.cpp rs.h)
+target_sources(gracidea PUBLIC util.cpp util.h)
+target_sources(gracidea PUBLIC api.cpp api.h)
+target_sources(gracidea PUBLIC data.cpp)

@@ -444,7 +444,7 @@ const char* pokemon_name_list[] = {
 "?",
 };
 
-const struct rs_item items_names_list[] = {
+extern const struct rs_item items_names_list[] = {
 { .name = "Nothing", .bag_category = BAD_CATEGORY, .id = 0x0 },
 { .name = "Master Ball", .bag_category = BALL_CATEGORY, .id = 0x1 },
 { .name = "Ultra Ball", .bag_category = BALL_CATEGORY, .id = 0x2 },

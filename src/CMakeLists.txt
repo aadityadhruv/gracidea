@@ -1,5 +1,5 @@
-add_executable(gracidea gracidea.h gracidea.c)
-target_sources(gracidea PUBLIC api.c api.h)
-target_sources(gracidea PUBLIC cli.c cli.h)
+add_executable(gracidea gracidea.h gracidea.cpp)
+target_sources(gracidea PUBLIC api.cpp api.h)
+target_sources(gracidea PUBLIC cli.cpp cli.h)
 add_subdirectory(rs)
 target_link_libraries(gracidea PRIVATE junk)

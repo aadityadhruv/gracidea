@@ -15,8 +15,8 @@ int main(int argc, char** argv) {
         .box_edit = NULL,
         .box_new = NULL,
         .party_view = rs_party_view,
-        .party_new = NULL,
         .party_edit = NULL,
+        .party_new = NULL,
         .bag_view = rs_bag_view,
         .bag_new = rs_bag_new,
     };

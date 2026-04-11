@@ -142,7 +142,7 @@ struct pc_buffer* get_pc(struct file* fp) {
     // Calculate offset
     int idx = fp->save_a[0].section_id;
     // 9 sections, each 4096 bytes long
-    char* buf = malloc(4096 * 9);
+    char* buf = (char*)malloc(4096 * 9);
     memset(buf, 0, 4096 * 9);
     size_t offset = 0;
     for (int i = 5; i <= 13; i++) {
@@ -159,7 +159,7 @@ struct pc_buffer* get_pc(struct file* fp) {
 
 int save_pc(struct pc_buffer* pc, struct file *fp) {
     // PC Box stuff
-    struct pc_buffer* pctmp = malloc(sizeof(struct pc_buffer));
+    struct pc_buffer* pctmp = (struct pc_buffer*) malloc(sizeof(struct pc_buffer));
     if (pctmp == NULL) {
         perror("malloc");
         return -1;
@@ -191,7 +191,7 @@ int save_pc(struct pc_buffer* pc, struct file *fp) {
 }
 
 int __save_team(struct player_team* t, struct file *fp) {
-    struct player_team* team = malloc(sizeof(struct player_team));
+    struct player_team* team = (struct player_team*) malloc(sizeof(struct player_team));
     memset(team, 0, sizeof(struct player_team));
     memcpy(team, t, sizeof(struct player_team));
     int idx = fp->save_a[0].section_id;
@@ -288,7 +288,7 @@ int get_bag_items(struct file* fp, enum category category, struct rs_item** item
         }
         count += 1;
     }
-    *items = malloc(count * rs_item_size);
+    *items = (struct rs_item*) malloc(count * rs_item_size);
     for (int i = 0; i < count; i++) {
         struct item raw = list[i];
         struct rs_item item = items_names_list[raw.index];
