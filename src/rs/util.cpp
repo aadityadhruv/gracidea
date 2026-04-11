@@ -1,5 +1,4 @@
 #include "util.h"
-#include "rs.h"
 #include <assert.h>
 #include <endian.h>
 #include <string.h>

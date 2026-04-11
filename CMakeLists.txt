@@ -19,3 +19,6 @@ target_compile_options(gracidea PRIVATE
     # -fsanitize=address,undefined
     -g3
 )
+# target_link_options(gracidea PRIVATE
+#     -fsanitize=address,undefined
+# )

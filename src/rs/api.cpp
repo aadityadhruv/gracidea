@@ -1,5 +1,5 @@
 #include "api.h"
-#include "rs.h"
+#include "core.h"
 #include "util.h"
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-#include "rs.h"
+#include "core.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -15,8 +15,7 @@ extern struct rs_item items_names_list[];
 
 /*
  * Minimum steps to get a save file loaded into memory. We convert required
- * values into LE notation. Data is NOT decoded or decrypted. That task is left
- * to other methods fetching information from specific sections
+ * values into LE notation. 
  */
 void load_save_file(std::string path, struct file** filep) {
     std::cout << "Opening file" << std::endl;
@@ -70,12 +69,10 @@ void load_save_file(std::string path, struct file** filep) {
     for (int i = 0; i < 6; i++) {
         // Convert to LE
         __pokemontole(&team->pokemon[i]);
-        // Decrypt mon temporarily to check the checksum, and then once checked,
-        // encrypt again
+        // Decrypt mon to check the checksum
         __decrypt_poke_data(&team->pokemon[i]);
         int chksm = __check_pokemon_chksum(&team->pokemon[i]);
         if (chksm) fprintf(stderr,"WARNING: Bad egg detected\n");
-        __encrypt_poke_data(&team->pokemon[i]);
     }
 
     // PC Box stuff
@@ -102,7 +99,6 @@ void load_save_file(std::string path, struct file** filep) {
         __decrypt_poke_data((struct pokemon*)&pc->pokemon[i]);
         int chksm = __check_pokemon_chksum((struct pokemon*) &pc->pokemon[i]);
         if (chksm) fprintf(stderr,"WARNING: Bad egg detected\n");
-        __encrypt_poke_data((struct pokemon*)&pc->pokemon[i]);
     }
     // Write back after decrypt/conversion
     offset = 0;

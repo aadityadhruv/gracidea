@@ -1,6 +1,6 @@
 #pragma once
 #include <endian.h>
-#include "rs.h"
+#include "core.h"
 
 #define NUMBER_OF_SECTIONS 14
 
