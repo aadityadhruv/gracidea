@@ -2,3 +2,5 @@
 build
 dumps
 .cache
+*.sav
+.idea

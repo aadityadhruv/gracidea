@@ -6,5 +6,15 @@ project(gracidea VERSION 1.0
 
 set(CMAKE_BUILD_TYPE Debug)
 message("Compiler: ${CMAKE_CXX_COMPILER_ID}")
-
 add_subdirectory(src)
+target_compile_options(gracidea PRIVATE
+    -Wall
+    -Wextra
+    -Wno-double-promotion
+    -Wno-conversion
+    -Wno-sign-conversion
+    -Wno-unused-parameter
+    -Wno-unused-function
+    # -fsanitize=address,undefined
+    -g3
+)
