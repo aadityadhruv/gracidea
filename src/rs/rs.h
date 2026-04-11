@@ -229,7 +229,7 @@ enum category {
     BERRY_CATEGORY,
 };
 struct rs_item {
-    char* name;
+    const char* name;
     __u8 bag_category;
     __u16 id;
     __u16 quantity;

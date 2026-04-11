@@ -8,7 +8,7 @@
 
 
 extern std::string file_path;
-extern char* pokemon_name_list[];
+extern std::string pokemon_name_list[];
 extern const struct rs_item items_names_list[];
 
 void RSAPI::box_view(int num) {
@@ -39,9 +39,9 @@ void RSAPI::box_view(int num) {
         decode_string(pkmn.nickname, sizeof(pkmn.nickname), nickname);
         decode_string(pkmn.ot, sizeof(pkmn.ot), ot);
         fprintf(stderr, "ID: %d: Name: %s, OT: %s, ID/SID: %05d/%05d | ", i, nickname, ot, id, sid);
-        char* name = pokemon_name_list[info->species];
+        std::string name = pokemon_name_list[info->species];
         const struct rs_item* item = &items_names_list[info->held_item];
-        fprintf(stderr, "Species: %s, Item: %s\n", name, item->name);
+        fprintf(stderr, "Species: %s, Item: %s\n", name.c_str(), item->name);
     }
     free(pc);
 }
@@ -65,9 +65,9 @@ void RSAPI::party_view() {
         decode_string(pkmn.nickname, sizeof(pkmn.nickname), nickname);
         decode_string(pkmn.ot, sizeof(pkmn.ot), ot);
         fprintf(stderr, "ID: %d: Name: %s, OT: %s, ID/SID: %05d/%05d | ", i, nickname, ot, id, sid);
-        char* name = pokemon_name_list[info->species];
+        std::string name = pokemon_name_list[info->species];
         const struct rs_item* item = &items_names_list[info->held_item];
-        fprintf(stderr, "Species: %s, Item: %s\n", name, item->name);
+        fprintf(stderr, "Species: %s, Item: %s\n", name.c_str(), item->name);
     }
 }
 

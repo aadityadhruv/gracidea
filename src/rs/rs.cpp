@@ -8,7 +8,7 @@
 #include "cstring"
 #include "util.h"
 
-extern char* pokemon_name_list[];
+extern std::string pokemon_name_list[];
 extern struct rs_item items_names_list[];
 
 /*
