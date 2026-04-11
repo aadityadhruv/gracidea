@@ -93,7 +93,7 @@ __u8 __check_pokemon_chksum(struct pokemon* pokemon) {
     for (int i = 0; i < 3*4*2; i++) {
         chk += htole16(data[i]);
     }
-    return (chk == pokemon->checksum);
+    return !(chk == pokemon->checksum);
 }
 void __gen_pokemon_chksum(struct pokemon* pokemon) {
     __u16 chk = 0;

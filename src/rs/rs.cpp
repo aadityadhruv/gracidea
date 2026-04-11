@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include "rs.h"
 #include <assert.h>
@@ -7,6 +8,7 @@
 #include <stdlib.h>
 #include "cstring"
 #include "util.h"
+#include <format>
 
 extern std::string pokemon_name_list[];
 extern struct rs_item items_names_list[];
@@ -17,20 +19,17 @@ extern struct rs_item items_names_list[];
  * to other methods fetching information from specific sections
  */
 void load_save_file(std::string path, struct file** filep) {
-    fprintf(stderr, "Opening file\n");
+    std::cout << "Opening file" << std::endl;
     FILE *f = fopen(path.c_str(), "rb");
-    fprintf(stderr, "Getting length of file\n");
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);
     fseek(f, 0, SEEK_SET); 
-    fprintf(stderr, "Read %lu bytes, expecting %lu\n", fsize, sizeof(struct file));
-    fprintf(stderr, "reading complete\n");
+    std::cout << std::format("Read {} bytes, expecting {}", fsize, sizeof(struct file)) << std::endl;
 
     //TODO Malloc
     char buffer[sizeof(struct file)];
     fread(buffer, sizeof(struct file), 1, f);
     fclose(f);
-    fprintf(stderr, "reading complete\n");
 
     struct file* fp = (struct file*) buffer;
 
