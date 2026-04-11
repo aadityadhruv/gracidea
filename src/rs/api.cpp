@@ -4,13 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 
 
-extern char* file_path;
+extern std::string file_path;
 extern char* pokemon_name_list[];
 extern const struct rs_item items_names_list[];
 
-void rs_box_view(int num) {
+void RSAPI::box_view(int num) {
     if (num < 0 || num > 14) {
         fprintf(stderr, "ERROR! Box Number must be between 0 and 14!\n");
         return;
@@ -44,7 +45,7 @@ void rs_box_view(int num) {
     }
     free(pc);
 }
-void rs_party_view() {
+void RSAPI::party_view() {
     struct file* fp;
     load_save_file(file_path, &fp);
     struct player_team* team = get_player_team(fp);
@@ -70,23 +71,21 @@ void rs_party_view() {
     }
 }
 
-void rs_bag_view(char* section) {
-    char* sections[5] = { "items", "keyitems", "balls", "tms", "berries"};
-
+void RSAPI::bag_view(std::string section) {
     enum category category = BAD_CATEGORY;
-    if (strcmp(section, "items") == 0) {
+    if (section == "items") {
         category = ITEM_CATEGORY;
     }
-    else if (strcmp(section, "keyitems") == 0) {
+    else if (section == "keyitems") {
         category = KEY_ITEM_CATEGORY;
     }
-    else if (strcmp(section, "balls") == 0) {
+    else if (section == "balls") {
         category = BALL_CATEGORY;
     }
-    else if (strcmp(section, "tms") == 0) {
+    else if (section == "tms") {
         category = TM_CATEGORY;
     }
-    else if (strcmp(section, "berries") == 0) {
+    else if (section == "berries") {
         category = BERRY_CATEGORY;
     }
     else {
@@ -106,11 +105,11 @@ void rs_bag_view(char* section) {
     free(items);
 }
 
-void rs_bag_new(char *item, int quantity) {
+void RSAPI::bag_new(std::string item, int quantity) {
     struct rs_item* target = (struct rs_item*) malloc(sizeof(struct rs_item));
     for (int i = 0; i < 0; i++) {
         const struct rs_item* list_item = &items_names_list[i];
-        if (strcmp(list_item->name, item) == 0) {
+        if (list_item->name == item) {
             memcpy(target, list_item, sizeof(struct rs_item));
             break;
         }

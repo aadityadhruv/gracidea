@@ -1,10 +1,11 @@
+#include <string>
 #include "rs.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <endian.h>
 #include <stdlib.h>
-#include <string.h>
+#include "cstring"
 #include "util.h"
 
 extern char* pokemon_name_list[];
@@ -15,9 +16,9 @@ extern struct rs_item items_names_list[];
  * values into LE notation. Data is NOT decoded or decrypted. That task is left
  * to other methods fetching information from specific sections
  */
-void load_save_file(char* path, struct file** filep) {
+void load_save_file(std::string path, struct file** filep) {
     fprintf(stderr, "Opening file\n");
-    FILE *f = fopen(path, "rb");
+    FILE *f = fopen(path.c_str(), "rb");
     fprintf(stderr, "Getting length of file\n");
     fseek(f, 0, SEEK_END);
     long fsize = ftell(f);
@@ -74,7 +75,7 @@ void load_save_file(char* path, struct file** filep) {
         // encrypt again
         __decrypt_poke_data(&team->pokemon[i]);
         int chksm = __check_pokemon_chksum(&team->pokemon[i]);
-        if (chksm) fprintf(stderr,"WARNING: Bad egg detected");
+        if (chksm) fprintf(stderr,"WARNING: Bad egg detected\n");
         __encrypt_poke_data(&team->pokemon[i]);
     }
 
@@ -101,7 +102,7 @@ void load_save_file(char* path, struct file** filep) {
         memcpy(&pc->pokemon[i], tmp, sizeof(struct pc_pokemon));
         __decrypt_poke_data((struct pokemon*)&pc->pokemon[i]);
         int chksm = __check_pokemon_chksum((struct pokemon*) &pc->pokemon[i]);
-        if (chksm) fprintf(stderr,"WARNING: Bad egg detected");
+        if (chksm) fprintf(stderr,"WARNING: Bad egg detected\n");
         __encrypt_poke_data((struct pokemon*)&pc->pokemon[i]);
     }
     // Write back after decrypt/conversion

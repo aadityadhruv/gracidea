@@ -14,74 +14,64 @@
 
 #include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "cli.h"
 #include "api.h"
 
-extern struct pokeapi* api;
-
-
-int parse_args(int argc, char** argv) {
+int parse_args(const int argc, char **argv, struct PokeAPI &api) {
     assert(argc >= 3);
 
-    char* mode = argv[1];
-    char* action = argv[2];
-    char** params = argv + 3;
+    char *mode = argv[1];
+    char *action = argv[2];
+    char **params = argv + 3;
     fprintf(stderr, "MODE: %s, ACTION: %s\n", mode, action);
 
     if (strcmp(mode, "box") == 0) {
-        return handle_box(argc - 3, action, params);
+        return handle_box(argc - 3, action, params, api);
     }
 
-    else if (strcmp(mode, "party") == 0) {
-        return handle_party(argc - 3, action, params);
+    if (strcmp(mode, "party") == 0) {
+        return handle_party(argc - 3, action, params, api);
     }
 
-    else if (strcmp(mode, "bag") == 0) {
-        return handle_bag(argc - 3, action, params);
+    if (strcmp(mode, "bag") == 0) {
+        return handle_bag(argc - 3, action, params, api);
     }
-    else {
-        fprintf(stderr, "Invalid mode and action - %s, %s\n", mode, action);
-        return -1;
-    }
-    return 0;
+    fprintf(stderr, "Invalid mode and action - %s, %s\n", mode, action);
+    return -1;
 }
 
-int handle_box(int argc, char *action, char **params) {
+int handle_box(int argc, char *action, char **params, struct PokeAPI &api) {
     if (strcmp(action, "view") == 0) {
         assert(argc == 1);
         int box = atoi(params[0]);
-        api->box_view(box);
-    }
-    else {
+        api.box_view(box);
+    } else {
         fprintf(stderr, "Invalid fields to box mode - action \"%s\"\n", action);
     }
 
     return 0;
 }
 
-int handle_party(int argc, char *action, char **params) {
+int handle_party(int argc, char *action, char **params, struct PokeAPI &api) {
     if (strcmp(action, "view") == 0) {
         assert(argc == 0);
-        api->party_view();
-    }
-    else {
+        api.party_view();
+    } else {
         fprintf(stderr, "Invalid fields to party mode - action \"%s\"\n", action);
     }
     return 0;
 }
-int handle_bag(int argc, char *action, char **params) {
+
+int handle_bag(int argc, char *action, char **params, struct PokeAPI &api) {
     if (strcmp(action, "view") == 0) {
         assert(argc == 1);
-        api->bag_view(params[0]);
-    }
-    else if (strcmp(action, "new") == 0) {
+        api.bag_view(params[0]);
+    } else if (strcmp(action, "new") == 0) {
         assert(argc == 2);
         int quantity = atoi(params[1]);
-        api->bag_new(params[0], quantity);
-    }
-    else {
+        api.bag_new(params[0], quantity);
+    } else {
         fprintf(stderr, "Invalid fields to party mode - action \"%s\"\n", action);
     }
     return 0;

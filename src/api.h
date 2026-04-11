@@ -1,15 +1,18 @@
-struct g_pokemon {
+#pragma once
+#include <string>
+
+struct G_Pokemon {
 };
 
-struct pokeapi {
-    void (*box_view)(int num);
-    void (*box_edit)(int num, int idx);
-    void (*box_new)(int num, int idx, struct g_pokemon*);
+struct PokeAPI {
+    virtual void box_view(int num) {};
+    virtual void box_edit(int num, int idx) {};
+    virtual void box_new(int num, int idx, const struct G_Pokemon &pokemon) {};
 
-    void (*party_view)();
-    void (*party_edit)(int idx);
-    void (*party_new)(int idx, struct g_pokemon*);
+    virtual void party_view() {};
+    virtual void party_edit(int idx) {};
+    virtual void party_new(int idx, const struct G_Pokemon &pokemon) {};
 
-    void (*bag_view)(char* section);
-    void (*bag_new)(char* item, int quantity);
+    virtual void bag_view(std::string section) {};
+    virtual void bag_new(std::string item, int quantity) {};
 };

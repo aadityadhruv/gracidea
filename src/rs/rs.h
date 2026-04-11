@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <linux/types.h>
 /* Gen III Save Data Structure
  * This includes Pokemon Ruby and Pokemon Sapphire
@@ -214,7 +215,7 @@ struct file {
     struct recorded_battle battle;
 };
 
-void load_save_file(char* path, struct file** fp);
+void load_save_file(std::string path, struct file** fp);
 struct trainer_info* get_trainer_info(struct file* fp);
 struct player_team* get_player_team(struct file* fp);
 struct pc_buffer* get_pc(struct file* fp);
