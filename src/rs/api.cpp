@@ -1,4 +1,7 @@
 #include "api.h"
+
+#include <array>
+
 #include "core.h"
 #include "util.h"
 #include <stdio.h>
@@ -9,7 +12,7 @@
 
 extern std::string file_path;
 extern std::string pokemon_name_list[];
-extern const struct rs_item items_names_list[];
+extern const std::array<struct rs_item, 349> items_names_list;
 
 void RSAPI::box_view(int num) {
     if (num < 0 || num > 14) {
@@ -106,22 +109,24 @@ void RSAPI::bag_view(std::string section) {
 }
 
 void RSAPI::bag_new(std::string item, int quantity) {
-    struct rs_item* target = (struct rs_item*) malloc(sizeof(struct rs_item));
-    for (int i = 0; i < 0; i++) {
+    struct rs_item target;
+    bool found = false;
+    for (int i = 0; i < items_names_list.size(); i++) {
         const struct rs_item* list_item = &items_names_list[i];
-        if (list_item->name == item) {
-            memcpy(target, list_item, sizeof(struct rs_item));
+        if (std::string(list_item->name) == item) {
+            target = *list_item;
+            found = true;
             break;
         }
     }
-    if (target == NULL) {
+    if (!found) {
         fprintf(stderr, "Invalid item!\n");
         return;
     }
     struct file* fp;
     load_save_file(file_path, &fp);
-    target->quantity = quantity;
-    set_bag_item(fp, target);
+    target.quantity = quantity;
+    set_bag_item(fp, &target);
     save_file(fp);
     //fprintf(stderr, "No space left in bag. Please delete/overwrite an existing item\n");
 }

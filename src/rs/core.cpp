@@ -10,8 +10,8 @@
 #include "util.h"
 #include <format>
 
-extern std::string pokemon_name_list[];
-extern struct rs_item items_names_list[];
+extern const std::array<std::string, 441> pokemon_name_list;
+extern const std::array<struct rs_item, 349> items_names_list;
 
 /*
  * Minimum steps to get a save file loaded into memory. We convert required
@@ -155,24 +155,20 @@ struct pc_buffer* get_pc(struct file* fp) {
 
 int save_pc(struct pc_buffer* pc, struct file *fp) {
     // PC Box stuff
-    struct pc_buffer* pctmp = (struct pc_buffer*) malloc(sizeof(struct pc_buffer));
-    if (pctmp == NULL) {
-        perror("malloc");
-        return -1;
-    }
-    memcpy(pctmp, pc, sizeof(struct pc_buffer));
+    struct pc_buffer pctmp;
+    memcpy(&pctmp, pc, sizeof(struct pc_buffer));
     for (int i = 0; i < sizeof(pc->pokemon) / sizeof(struct pc_pokemon); i++) {
         char tmp[sizeof(struct pokemon)];
         memset(tmp, 0, sizeof(struct pokemon));
-        memcpy(tmp, &pctmp->pokemon[i], sizeof(struct pc_pokemon));
+        memcpy(tmp, &pctmp.pokemon[i], sizeof(struct pc_pokemon));
         __pokemontole((struct pokemon*)tmp);
-        memcpy(&pctmp->pokemon[i], tmp, sizeof(struct pc_pokemon));
-        __encrypt_poke_data((struct pokemon*)&pctmp->pokemon[i]);
+        memcpy(&pctmp.pokemon[i], tmp, sizeof(struct pc_pokemon));
+        __encrypt_poke_data((struct pokemon*)&pctmp.pokemon[i]);
     }
 
     int idx = fp->save_a[0].section_id;
     size_t offset = 0;
-    char* c_pctmp = (char*) pctmp;
+    char* c_pctmp = (char*) &pctmp;
     for (int i = 5; i <= 13; i++) {
         int box_idx = __get_section_offset_step(i, idx);
         memset(&fp->save_a[box_idx], 0, sizeof(fp->save_a[box_idx]));
@@ -181,50 +177,47 @@ int save_pc(struct pc_buffer* pc, struct file *fp) {
                         //last is 3968, last is 2000. We cannot use 4096 bytes
                         //because padding towards end messes with pkmn data
     }
-
-    free(pctmp);
     return 0;
 }
 
 int __save_team(struct player_team* t, struct file *fp) {
-    struct player_team* team = (struct player_team*) malloc(sizeof(struct player_team));
-    memset(team, 0, sizeof(struct player_team));
-    memcpy(team, t, sizeof(struct player_team));
+    struct player_team team;
+    memcpy(&team, t, sizeof(struct player_team));
     int idx = fp->save_a[0].section_id;
     int team_idx = __get_section_offset_step(1, idx);
     // TODO: Recalc checksum
 //    struct player_team* team = (struct player_team*) (fp->save_a[team_idx].data + 0x0234);
-    team->team_size = htole32(team->team_size);
-    team->money = htole32(team->money);
-    team->coins = htole16(team->coins);
+    team.team_size = htole32(team.team_size);
+    team.money = htole32(team.money);
+    team.coins = htole16(team.coins);
     for (int i = 0; i < 40; i++) {
-        __itemtole(&team->pc_items[i]);
+        __itemtole(&team.pc_items[i]);
     }
     for (int i = 0; i < 20; i++) {
-        __itemtole(&team->items[i]);
+        __itemtole(&team.items[i]);
     }
     for (int i = 0; i < 20; i++) {
-        __itemtole(&team->key_items[i]);
+        __itemtole(&team.key_items[i]);
     }
     for (int i = 0; i < 16; i++) {
-        __itemtole(&team->balls[i]);
+        __itemtole(&team.balls[i]);
     }
     for (int i = 0; i < 64; i++) {
-        __itemtole(&team->tms[i]);
+        __itemtole(&team.tms[i]);
     }
     for (int i = 0; i < 46; i++) {
-        __itemtole(&team->berries[i]);
+        __itemtole(&team.berries[i]);
     }
     // Pokemon conversion
     for (int i = 0; i < 6; i++) {
         // Convert to LE
-        __pokemontole(&team->pokemon[i]);
-        __gen_pokemon_chksum(&team->pokemon[i]);
-        __check_pokemon_chksum(&team->pokemon[i]);
-        __encrypt_poke_data(&team->pokemon[i]);
+        __pokemontole(&team.pokemon[i]);
+        __gen_pokemon_chksum(&team.pokemon[i]);
+        int chksum = __check_pokemon_chksum(&team.pokemon[i]);
+        if (chksum) fprintf(stderr, "ERROR: Bad egg in saving!\n");
+        __encrypt_poke_data(&team.pokemon[i]);
     }
-    memcpy(fp->save_a[team_idx].data + 0x0234, (char*)team, sizeof(struct player_team));
-    free(team);
+    memcpy(fp->save_a[team_idx].data + 0x0234, (char*)&team, sizeof(struct player_team));
     return 0;
 }
 
@@ -237,6 +230,10 @@ int save_trainer_info(struct trainer_info *pc, struct file *fp) {
  * A fp, which is typically loaded into memory with a load_save_file call,
  * EXTRACTS all the data in a save file in a decoded and decrypted format.
  * We apply the the reverse here and save it
+ * This works because at any given point, a file struct is in the correct order
+ * If you are adding things to the file you SHOULD use the above methods which 
+ * also handle the le conversion, encryption etc. 
+ * DIRECTLY TOUCHING THE STRUCT WILL RUIN THE SAVE FILE
  */
 int save_file(struct file *fp) {
     fprintf(stderr, "Opening tmp file\n");
