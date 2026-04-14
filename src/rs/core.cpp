@@ -36,6 +36,8 @@ namespace rs {
         int idx = fp->save_a[0].section_id;
         // Trainer stuff
         // Calculate offset
+        //TODO: Maybe refactor below func to take struct file and get idx from 
+        //there instead of defining it above and passing it here
         int trainer_idx = __get_section_offset_step(0, idx);
         struct trainer_info* ti = (struct trainer_info*) (fp->save_a[trainer_idx].data);
         ti->trainer_id = htole32(ti->trainer_id);
@@ -152,79 +154,6 @@ namespace rs {
         return pc;
     }
 
-
-    int save_pc(struct pc_buffer* pc, struct file *fp) {
-        // PC Box stuff
-        struct pc_buffer pctmp;
-        memcpy(&pctmp, pc, sizeof(struct pc_buffer));
-        for (int i = 0; i < sizeof(pc->pokemon) / sizeof(struct pc_pokemon); i++) {
-            char tmp[sizeof(struct pokemon)];
-            memset(tmp, 0, sizeof(struct pokemon));
-            memcpy(tmp, &pctmp.pokemon[i], sizeof(struct pc_pokemon));
-            __pokemontole((struct pokemon*)tmp);
-            memcpy(&pctmp.pokemon[i], tmp, sizeof(struct pc_pokemon));
-            __encrypt_poke_data((struct pokemon*)&pctmp.pokemon[i]);
-        }
-
-        int idx = fp->save_a[0].section_id;
-        size_t offset = 0;
-        char* c_pctmp = (char*) &pctmp;
-        for (int i = 5; i <= 13; i++) {
-            int box_idx = __get_section_offset_step(i, idx);
-            memset(&fp->save_a[box_idx], 0, sizeof(fp->save_a[box_idx]));
-            memcpy(&fp->save_a[box_idx], c_pctmp + offset, 3968);
-            offset += 3968; //TODO: Need to remove hardcode, all sections except
-                            //last is 3968, last is 2000. We cannot use 4096 bytes
-                            //because padding towards end messes with pkmn data
-        }
-        return 0;
-    }
-
-    int __save_team(struct player_team* t, struct file *fp) {
-        struct player_team team;
-        memcpy(&team, t, sizeof(struct player_team));
-        int idx = fp->save_a[0].section_id;
-        int team_idx = __get_section_offset_step(1, idx);
-        // TODO: Recalc checksum
-        //    struct player_team* team = (struct player_team*) (fp->save_a[team_idx].data + 0x0234);
-        team.team_size = htole32(team.team_size);
-        team.money = htole32(team.money);
-        team.coins = htole16(team.coins);
-        for (int i = 0; i < 40; i++) {
-            __itemtole(&team.pc_items[i]);
-        }
-        for (int i = 0; i < 20; i++) {
-            __itemtole(&team.items[i]);
-        }
-        for (int i = 0; i < 20; i++) {
-            __itemtole(&team.key_items[i]);
-        }
-        for (int i = 0; i < 16; i++) {
-            __itemtole(&team.balls[i]);
-        }
-        for (int i = 0; i < 64; i++) {
-            __itemtole(&team.tms[i]);
-        }
-        for (int i = 0; i < 46; i++) {
-            __itemtole(&team.berries[i]);
-        }
-        // Pokemon conversion
-        for (int i = 0; i < 6; i++) {
-            // Convert to LE
-            __pokemontole(&team.pokemon[i]);
-            __gen_pokemon_chksum(&team.pokemon[i]);
-            int chksum = __check_pokemon_chksum(&team.pokemon[i]);
-            if (chksum) fprintf(stderr, "ERROR: Bad egg in saving!\n");
-            __encrypt_poke_data(&team.pokemon[i]);
-        }
-        memcpy(fp->save_a[team_idx].data + 0x0234, (char*)&team, sizeof(struct player_team));
-        return 0;
-    }
-
-    int save_trainer_info(struct trainer_info *pc, struct file *fp) {
-        return 0;
-    }
-
     /*
      * Encode, Encrypt and write out a fp.
      * A fp, which is typically loaded into memory with a load_save_file call,
@@ -236,9 +165,48 @@ namespace rs {
      * DIRECTLY TOUCHING THE STRUCT WILL RUIN THE SAVE FILE
      */
     int save_file(struct file *fp) {
+        // Copy fp data
+        struct file fpc;
+        memcpy(&fpc, fp, sizeof(struct file));
+        // ========= Save Player Team ==========
+        struct player_team* team = get_player_team(&fpc);
+        // Pokemon conversion
+        for (int i = 0; i < 6; i++) {
+            // Convert to LE
+            // __pokemontole(&team->pokemon[i]);
+            int chksum = __check_pokemon_chksum(&team->pokemon[i]);
+            if (chksum) fprintf(stderr, "ERROR: Bad egg in saving!\n");
+            __encrypt_poke_data(&team->pokemon[i]);
+        }
+        // Trainer Info needs no modifications, it's already directly save-able
+
+        // ========= Save PC ==========
+        // Save index
+        int idx = fpc.save_a[0].section_id;
+        struct pc_buffer* pc = get_pc(&fpc);
+        for (int i = 0; i < sizeof(pc->pokemon) / sizeof(struct pc_pokemon); i++) {
+            struct pokemon tmp_pokemon;
+            memset(&tmp_pokemon, 0, sizeof(struct pokemon));
+            memcpy(&tmp_pokemon, &pc->pokemon[i], sizeof(struct pc_pokemon));
+            int chksum = __check_pokemon_chksum(&tmp_pokemon);
+            if (chksum) fprintf(stderr, "ERROR: Bad egg in saving!\n");
+            __encrypt_poke_data(&tmp_pokemon);
+            memcpy(&pc->pokemon[i], &tmp_pokemon, sizeof(struct pc_pokemon));
+        }
+        // Write back after decrypt/conversion
+        size_t offset = 0;
+        char* buf = (char*) pc;
+        for (int i = 5; i <= 13; i++) {
+            int box_idx = __get_section_offset_step(i, idx);
+            int size = (i == 13) ? 2000 : 3968;
+            memcpy(&fpc.save_a[box_idx],buf + offset, size);
+            offset += 3968; //TODO: Need to remove hardcode, all sections except
+                            //last is 3968, last is 2000. We cannot use 4096 bytes
+                            //because padding towards end messes with pkmn data
+        }
         fprintf(stderr, "Opening tmp file\n");
         FILE *f = fopen("/tmp/rs.sav", "w");
-        char* save_data = (char*) fp;
+        char* save_data = (char*) &fpc;
         fwrite(save_data, sizeof(struct file), 1, f);
         return 0;
     }

@@ -236,11 +236,6 @@ namespace rs {
         __u16 id;
         __u16 quantity;
     };
-
-    int __save_pc(struct pc_buffer* pc, struct file *fp);
-    int __save_team(struct player_team* pc, struct file *fp);
-    int __save_trainer_info(struct trainer_info* pc, struct file *fp);
-
     int save_file(struct file* fp);
 
     // Public functions to use to operate on a struct file
