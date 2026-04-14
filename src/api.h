@@ -14,5 +14,5 @@ struct PokeAPI {
     virtual void party_new(int idx, const struct G_Pokemon &pokemon) {};
 
     virtual void bag_view(std::string section) {};
-    virtual void bag_new(std::string item, int quantity) {};
+    virtual void bag_edit(std::string item, int quantity) {};
 };

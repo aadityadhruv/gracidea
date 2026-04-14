@@ -3,6 +3,7 @@
 #include "data.h"
 #include "core.h"
 #include "util.h"
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,6 +72,44 @@ namespace rs {
             fprintf(stderr, "Species: %s, Item: %s\n", name.c_str(), item->name);
         }
     }
+    void RSAPI::party_edit(int idx) {
+        struct file* fp;
+        load_save_file(file_path, &fp);
+        struct player_team* team = get_player_team(fp);
+
+        if (idx < 0 || idx > 5) {
+            std::cerr << "BAD INDEX: Please give a value between 0 and 5!" << std::endl;
+            return;
+        }
+        struct pokemon* pkmn = &(team->pokemon[idx]);
+        __u16 id = pkmn->ot_id >> 16;
+        __u16 sid = pkmn->ot_id & 0x00ff;
+        struct poke_growth* info = get_poke_growth((struct pokemon*) pkmn);
+        if (info->species == 0x00) {
+            return;
+        }
+        // Read input
+        std::cout << "Nickname: ";
+        std::string new_nickname = "";
+        std::getline(std::cin, new_nickname);
+        if (new_nickname != "") { 
+            char out_nickname[10];
+            memset(out_nickname, 0xff, 10);
+            encode_string((char*) new_nickname.c_str(), new_nickname.size(), out_nickname);
+            memcpy(&pkmn->nickname, out_nickname, 10);
+        }
+        char nickname[sizeof(pkmn->nickname) + 1];
+        nickname[sizeof(pkmn->nickname)] = 0;
+        char ot[sizeof(pkmn->ot) + 1];
+        ot[sizeof(pkmn->ot)] = 0;
+        decode_string(pkmn->nickname, sizeof(pkmn->nickname), nickname);
+        decode_string(pkmn->ot, sizeof(pkmn->ot), ot);
+        fprintf(stderr, "ID: %d: Name: %s, OT: %s, ID/SID: %05d/%05d | ", idx, nickname, ot, id, sid);
+        std::string name = pokemon_name_list[info->species];
+        const struct rs_item* item = &items_names_list[info->held_item];
+        fprintf(stderr, "Species: %s, Item: %s\n", name.c_str(), item->name);
+        save_file(fp);
+    }
 
     void RSAPI::bag_view(std::string section) {
         enum category category = BAD_CATEGORY;
@@ -106,7 +145,7 @@ namespace rs {
         free(items);
     }
 
-    void RSAPI::bag_new(std::string item, int quantity) {
+    void RSAPI::bag_edit(std::string item, int quantity) {
         struct rs_item target;
         bool found = false;
         for (int i = 0; i < items_names_list.size(); i++) {

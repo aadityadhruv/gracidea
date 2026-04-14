@@ -4,9 +4,14 @@
 #include <string.h>
 
 namespace rs {
+    void encode_string(char* input, int size, char* output) {
+        for (int i = 0; i < size; i++) {
+            output[i] = __character_map_encode(input[i]);
+        }
+    }
     void decode_string(char* input, int size, char* output) {
         for (int i = 0; i < size; i++) {
-            output[i] = __character_map(input[i]);
+            output[i] = __character_map_decode(input[i]);
         }
     }
 
@@ -29,8 +34,35 @@ namespace rs {
         pokemon->sp_def = htole16(pokemon->sp_def);
 
     }
+    char __character_map_encode(__u8 c) {
+        char map[256];
+        memset(map, 0, 256);
+        // Number 0-9 conversion
+        for (int i = 0; i < 10; i++) {
+            map['0' + i] = (0xA1 + i);
+        }
+        // Alphabet conversion
+        for (int i = 0; i < 26; i++) {
+            // Upper case indices
+            map['A' + i] = (0xBB + i);
+            // Lower case indices
+            map['a'+ i] = (0xD5 + i);
+        }
+        // Symbols
+        map['!'] = 0xAB;
+        map['?'] = 0xAC;
+        map['.'] = 0xAD;
+        map['-'] = 0xAE;
+        map['"'] = 0xB1;
+        map['"'] = 0xB2; //TODO: Region difference
+        map['`'] = 0xB3;
+        map['\''] = 0xB4;
+        // NULL TERMINATION OF STRINGS
+        map[0] = 0xff;
+        return map[c];
+    }
     // Convert Gen III RS character encoding (Western boards)
-    char __character_map(__u8 c) {
+    char __character_map_decode(__u8 c) {
         char map[256];
         memset(map, 0, 256);
         // Number 0-9 conversion

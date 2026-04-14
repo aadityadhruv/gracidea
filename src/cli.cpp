@@ -57,6 +57,11 @@ int handle_party(int argc, char *action, char **params, struct PokeAPI &api) {
     if (strcmp(action, "view") == 0) {
         assert(argc == 0);
         api.party_view();
+    } 
+    else if (strcmp(action, "edit") == 0) {
+        assert(argc == 1);
+        int idx = atoi(params[0]);
+        api.party_edit(idx);
     } else {
         fprintf(stderr, "Invalid fields to party mode - action \"%s\"\n", action);
     }
@@ -67,10 +72,10 @@ int handle_bag(int argc, char *action, char **params, struct PokeAPI &api) {
     if (strcmp(action, "view") == 0) {
         assert(argc == 1);
         api.bag_view(params[0]);
-    } else if (strcmp(action, "new") == 0) {
+    } else if (strcmp(action, "edit") == 0) {
         assert(argc == 2);
         int quantity = atoi(params[1]);
-        api.bag_new(params[0], quantity);
+        api.bag_edit(params[0], quantity);
     } else {
         fprintf(stderr, "Invalid fields to party mode - action \"%s\"\n", action);
     }
