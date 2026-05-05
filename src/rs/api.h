@@ -1,4 +1,8 @@
 #pragma once
+#include <array>
+#include <vector>
+
+#include "core.h"
 #include "../api.h"
 
 namespace rs {
@@ -14,4 +18,5 @@ namespace rs {
         void bag_view(std::string section) override;
         void bag_edit(std::string item, int quantity) override;
     };
+
 }

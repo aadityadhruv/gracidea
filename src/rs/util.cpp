@@ -4,12 +4,12 @@
 #include <string.h>
 
 namespace rs {
-    void encode_string(char* input, int size, char* output) {
+    void encode_string(const char* input, const int size, char* output) {
         for (int i = 0; i < size; i++) {
             output[i] = __character_map_encode(input[i]);
         }
     }
-    void decode_string(char* input, int size, char* output) {
+    void decode_string(const char* input, const int size, char* output) {
         for (int i = 0; i < size; i++) {
             output[i] = __character_map_decode(input[i]);
         }
@@ -20,7 +20,7 @@ namespace rs {
         item->quantity = htole16(item->quantity);
     }
 
-    void __pokemontole(struct pokemon* pokemon) {
+    void __pokemontole(struct pokemon_raw* pokemon) {
         pokemon->personality = htole32(pokemon->personality);
         pokemon->ot_id = htole32(pokemon->ot_id);
         pokemon->checksum = htole16(pokemon->checksum);
@@ -119,7 +119,7 @@ namespace rs {
      * @param pokemon: The pokemon to verify
      * @return 0 on valid Pokemon, non-zero value if "Bad egg"
      */
-    __u8 __check_pokemon_chksum(struct pokemon* pokemon) {
+    __u8 __check_pokemon_chksum(struct pokemon_raw* pokemon) {
         __u16 chk = 0;
         __u16* data = (__u16*)&pokemon->data;
         for (int i = 0; i < 3*4*2; i++) {
@@ -127,7 +127,7 @@ namespace rs {
         }
         return !(chk == pokemon->checksum);
     }
-    void __gen_pokemon_chksum(struct pokemon* pokemon) {
+    void __gen_pokemon_chksum(struct pokemon_raw* pokemon) {
         __u16 chk = 0;
         __u16* data = (__u16*)&pokemon->data;
         for (int i = 0; i < 3*4*2; i++) {
@@ -136,21 +136,21 @@ namespace rs {
         pokemon->checksum = chk;
     }
 
-    void __decrypt_poke_data(struct pokemon* pokemon) {
+    void __decrypt_poke_data(struct pokemon_raw* pokemon) {
         __u32 key = pokemon->ot_id ^ pokemon->personality;
         __u32* data = (__u32*)&pokemon->data;
         for (int i = 0; i < 3*4; i++) {
             data[i] ^= key;
         }
     }
-    void __encrypt_poke_data(struct pokemon* pokemon) {
+    void __encrypt_poke_data(struct pokemon_raw* pokemon) {
         __u32 key = pokemon->ot_id ^ pokemon->personality;
         __u32* data = (__u32*)&pokemon->data;
         for (int i = 0; i < 3*4; i++) {
             data[i] ^= key;
         }
     }
-    struct poke_growth* get_poke_growth(struct pokemon* pokemon) {
+    struct poke_growth* get_poke_growth(struct pokemon_raw* pokemon) {
         __u8 map[24] = {
             0, 0, 0, 0, 0, 0,
             1, 1, 2, 3, 2, 3,
@@ -162,7 +162,7 @@ namespace rs {
         __poke_growthtole(pg);
         return pg;
     }
-    struct poke_attack* get_poke_attack(struct pokemon* pokemon) {
+    struct poke_attack* get_poke_attack(struct pokemon_raw* pokemon) {
         __u8 map[24] = {
             1, 1, 2, 3, 2, 3,
             0, 0, 0, 0, 0, 0,
@@ -174,7 +174,7 @@ namespace rs {
         __poke_attacktole(patk);
         return patk;
     }
-    struct poke_ev* get_poke_ev(struct pokemon* pokemon) {
+    struct poke_ev* get_poke_ev(struct pokemon_raw* pokemon) {
         __u8 map[24] = {
             2, 3, 1, 1, 3, 2, 
             2, 3, 1, 1, 3, 2, 
@@ -185,7 +185,7 @@ namespace rs {
         struct poke_ev* pev = (struct poke_ev*) &pokemon->data[idx];
         return pev;
     }
-    struct poke_misc* get_poke_misc(struct pokemon* pokemon) {
+    struct poke_misc* get_poke_misc(struct pokemon_raw* pokemon) {
         __u8 map[24] = {
             3, 2, 3, 2, 1, 1, 
             3, 2, 3, 2, 1, 1, 

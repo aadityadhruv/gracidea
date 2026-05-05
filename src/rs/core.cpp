@@ -12,135 +12,112 @@
 #include "data.h"
 
 namespace rs {
-
-    /*
-     * Minimum steps to get a save file loaded into memory. We convert required
-     * values into LE notation. 
-     */
-    void load_save_file(std::string path, struct file** filep) {
+    struct file_raw load_save_file(const std::string &path) {
         std::cout << "Opening file" << std::endl;
         FILE *f = fopen(path.c_str(), "rb");
         fseek(f, 0, SEEK_END);
         long fsize = ftell(f);
         fseek(f, 0, SEEK_SET); 
-        std::cout << std::format("Read {} bytes, expecting {}", fsize, sizeof(struct file)) << std::endl;
+        std::cout << std::format("Read {} bytes, expecting {}", fsize, sizeof(struct file_raw)) << std::endl;
 
-        //TODO Malloc
-        char buffer[sizeof(struct file)];
-        fread(buffer, sizeof(struct file), 1, f);
+        char buffer[sizeof(struct file_raw)];
+        fread(buffer, sizeof(struct file_raw), 1, f);
         fclose(f);
 
-        struct file* fp = (struct file*) buffer;
+        const auto fp = reinterpret_cast<file_raw*>(buffer);
 
         // Save index
-        int idx = fp->save_a[0].section_id;
+        const int idx = fp->save_a[0].section_id;
         // Trainer stuff
         // Calculate offset
-        //TODO: Maybe refactor below func to take struct file and get idx from 
+        //TODO: Maybe refactor below func to take struct savefile and get idx from
         //there instead of defining it above and passing it here
-        int trainer_idx = __get_section_offset_step(0, idx);
-        struct trainer_info* ti = (struct trainer_info*) (fp->save_a[trainer_idx].data);
+        const int trainer_idx = __get_section_offset_step(0, idx);
+        const auto ti = reinterpret_cast<struct trainer_info_raw *>(fp->save_a[trainer_idx].data);
         ti->trainer_id = htole32(ti->trainer_id);
 
         // Player team stuff
         // Calculate offset
-        int team_idx = __get_section_offset_step(1, idx);
-        struct player_team* team = (struct player_team*) (fp->save_a[team_idx].data + 0x0234);
+        const int team_idx = __get_section_offset_step(1, idx);
+        const auto team = reinterpret_cast<struct player_team_raw *>(fp->save_a[team_idx].data + 0x0234);
         team->team_size = htole32(team->team_size);
         team->money = htole32(team->money);
         team->coins = htole16(team->coins);
-        for (int i = 0; i < 40; i++) {
-            __itemtole(&team->pc_items[i]);
+        for (auto & item : team->pc_items) {
+            __itemtole(&item);
         }
-        for (int i = 0; i < 20; i++) {
-            __itemtole(&team->items[i]);
+        for (auto & item : team->items) {
+            __itemtole(&item);
         }
-        for (int i = 0; i < 20; i++) {
-            __itemtole(&team->key_items[i]);
+        for (auto & key_item : team->key_items) {
+            __itemtole(&key_item);
         }
-        for (int i = 0; i < 16; i++) {
-            __itemtole(&team->balls[i]);
+        for (auto & ball : team->balls) {
+            __itemtole(&ball);
         }
-        for (int i = 0; i < 64; i++) {
-            __itemtole(&team->tms[i]);
+        for (auto & tm : team->tms) {
+            __itemtole(&tm);
         }
-        for (int i = 0; i < 46; i++) {
-            __itemtole(&team->berries[i]);
+        for (auto & berry: team->berries) {
+            __itemtole(&berry);
         }
         // Pokemon conversion
-        for (int i = 0; i < 6; i++) {
+        for (auto & i : team->pokemon) {
             // Convert to LE
-            __pokemontole(&team->pokemon[i]);
+            __pokemontole(&i);
             // Decrypt mon to check the checksum
-            __decrypt_poke_data(&team->pokemon[i]);
-            int chksm = __check_pokemon_chksum(&team->pokemon[i]);
-            if (chksm) fprintf(stderr,"WARNING: Bad egg detected\n");
+            __decrypt_poke_data(&i);
+            if (__check_pokemon_chksum(&i)) fprintf(stderr,"WARNING: Bad egg detected\n");
         }
 
         // PC Box stuff
         // 9 sections, each 4096 bytes long
-        char buf[4096 * 9];
-        memset(buf, 0, sizeof(buf));
+        char buf[4096 * 9] = {};
         size_t offset = 0;
         for (int i = 5; i <= 13; i++) {
-            int box_idx = __get_section_offset_step(i, idx);
+            const int box_idx = __get_section_offset_step(i, idx);
             memcpy(buf + offset, &fp->save_a[box_idx], 3968);
             offset += 3968; //TODO: Need to remove hardcode, all sections except
                             //last is 3968, last is 2000. We cannot use 4096 bytes
                             //because padding towards end messes with pkmn data
         }
-        struct pc_buffer* pc = (struct pc_buffer*) buf;
+        const auto pc = reinterpret_cast<struct pc_buffer_raw *>(buf);
         pc->box_idx = htole32(pc->box_idx);
-        for (int i = 0; i < sizeof(pc->pokemon) / sizeof(struct pc_pokemon); i++) {
-            // fprintf(stderr, "Processing Pokemon %d\n", i);
-            char tmp[sizeof(struct pokemon)];
-            memset(tmp, 0, sizeof(struct pokemon));
-            memcpy(tmp, &pc->pokemon[i], sizeof(struct pc_pokemon));
-            __pokemontole((struct pokemon*)tmp);
-            memcpy(&pc->pokemon[i], tmp, sizeof(struct pc_pokemon));
-            __decrypt_poke_data((struct pokemon*)&pc->pokemon[i]);
-            int chksm = __check_pokemon_chksum((struct pokemon*) &pc->pokemon[i]);
-            if (chksm) fprintf(stderr,"WARNING: Bad egg detected\n");
+        for (auto & i : pc->pokemon) {
+            char tmp[sizeof(struct pokemon_raw)] = {};
+            memcpy(tmp, &i, sizeof(struct pc_pokemon));
+            __pokemontole(reinterpret_cast<struct pokemon_raw *>(tmp));
+            memcpy(&i, tmp, sizeof(struct pc_pokemon));
+            __decrypt_poke_data(reinterpret_cast<struct pokemon_raw *>(&i));
+            if (__check_pokemon_chksum(reinterpret_cast<struct pokemon_raw *>(&i))) fprintf(stderr,"WARNING: Bad egg detected\n");
         }
-        // Write back after decrypt/conversion
-        offset = 0;
-        for (int i = 5; i <= 13; i++) {
-            int box_idx = __get_section_offset_step(i, idx);
-            memcpy(&fp->save_a[box_idx],buf + offset, 3968);
-            offset += 3968; //TODO: Need to remove hardcode, all sections except
-                            //last is 3968, last is 2000. We cannot use 4096 bytes
-                            //because padding towards end messes with pkmn data
-        }
-
-
-        // After conversion, point filep to fp
-        *filep = fp;
+        return *fp;
     }
 
 
-    // Get the trainer info of a save file in the form of a trainer_info struct
-    struct trainer_info* get_trainer_info(struct file* fp) {
+    // Get the trainer info of a save file in the form of a trainer_info_raw struct
+    struct trainer_info_raw* get_trainer_info(struct file_raw* fp) {
         // Calculate offset
-        int idx = fp->save_a[0].section_id;
-        int trainer_idx = __get_section_offset_step(0, idx);
-        struct trainer_info* ti = (struct trainer_info*) (fp->save_a[trainer_idx].data);
+        const int idx = fp->save_a[0].section_id;
+        const int trainer_idx = __get_section_offset_step(0, idx);
+        const auto ti = reinterpret_cast<struct trainer_info_raw *>(fp->save_a[trainer_idx].data);
         return ti;
     }
 
-    // Get the trainer info of a save file in the form of a trainer_info struct
-    struct player_team* get_player_team(struct file* fp) {
+    // Get the trainer info of a save file in the form of a trainer_info_raw struct
+    struct player_team_raw* get_player_team(struct file_raw* fp) {
         // Calculate offset
-        int idx = fp->save_a[0].section_id;
-        int trainer_idx = __get_section_offset_step(1, idx);
-        struct player_team* team = (struct player_team*) (fp->save_a[trainer_idx].data + 0x0234);
+        const int idx = fp->save_a[0].section_id;
+        const int trainer_idx = __get_section_offset_step(1, idx);
+        const auto team = reinterpret_cast<struct player_team_raw *>(fp->save_a[trainer_idx].data + 0x0234);
         return team;
     }
 
-    struct pc_buffer* get_pc(struct file* fp) {
+    struct pc_buffer_raw* get_pc(struct file_raw* fp) {
         // Calculate offset
         int idx = fp->save_a[0].section_id;
         // 9 sections, each 4096 bytes long
-        char* buf = (char*)malloc(4096 * 9);
+        auto buf = static_cast<char *>(malloc(9 * 4096));
         memset(buf, 0, 4096 * 9);
         size_t offset = 0;
         for (int i = 5; i <= 13; i++) {
@@ -150,52 +127,37 @@ namespace rs {
                             //last is 3968, last is 2000. We cannot use 4096 bytes
                             //because padding towards end messes with pkmn data
         }
-        struct pc_buffer* pc = (struct pc_buffer*) buf;
+        auto pc = reinterpret_cast<struct pc_buffer_raw *>(buf);
         return pc;
     }
 
-    /*
-     * Encode, Encrypt and write out a fp.
-     * A fp, which is typically loaded into memory with a load_save_file call,
-     * EXTRACTS all the data in a save file in a decoded and decrypted format.
-     * We apply the the reverse here and save it
-     * This works because at any given point, a file struct is in the correct order
-     * If you are adding things to the file you SHOULD use the above methods which 
-     * also handle the le conversion, encryption etc. 
-     * DIRECTLY TOUCHING THE STRUCT WILL RUIN THE SAVE FILE
-     */
-    int save_file(struct file *fp) {
-        // Copy fp data
-        struct file fpc;
-        memcpy(&fpc, fp, sizeof(struct file));
+    int save_file(const struct file_raw &save) {
+        file_raw out{};
         // ========= Save Player Team ==========
-        struct player_team* team = get_player_team(&fpc);
+        const player_team_raw team = save.team;
         // Pokemon conversion
-        for (int i = 0; i < 6; i++) {
+        for (const auto & i : team.pokemon) {
             // Convert to LE
-            // __pokemontole(&team->pokemon[i]);
-            int chksum = __check_pokemon_chksum(&team->pokemon[i]);
-            if (chksum) fprintf(stderr, "ERROR: Bad egg in saving!\n");
-            __encrypt_poke_data(&team->pokemon[i]);
+            if (__check_pokemon_chksum(&i)) fprintf(stderr, "ERROR: Bad egg in saving!\n");
+            __encrypt_poke_data(&i);
         }
         // Trainer Info needs no modifications, it's already directly save-able
 
         // ========= Save PC ==========
         // Save index
         int idx = fpc.save_a[0].section_id;
-        struct pc_buffer* pc = get_pc(&fpc);
+        struct pc_buffer_raw* pc = get_pc(&fpc);
         for (int i = 0; i < sizeof(pc->pokemon) / sizeof(struct pc_pokemon); i++) {
-            struct pokemon tmp_pokemon;
-            memset(&tmp_pokemon, 0, sizeof(struct pokemon));
+            pokemon_raw tmp_pokemon{};
+            memset(&tmp_pokemon, 0, sizeof(struct pokemon_raw));
             memcpy(&tmp_pokemon, &pc->pokemon[i], sizeof(struct pc_pokemon));
-            int chksum = __check_pokemon_chksum(&tmp_pokemon);
-            if (chksum) fprintf(stderr, "ERROR: Bad egg in saving!\n");
+            if (__check_pokemon_chksum(&tmp_pokemon)) fprintf(stderr, "ERROR: Bad egg in saving!\n");
             __encrypt_poke_data(&tmp_pokemon);
             memcpy(&pc->pokemon[i], &tmp_pokemon, sizeof(struct pc_pokemon));
         }
         // Write back after decrypt/conversion
         size_t offset = 0;
-        char* buf = (char*) pc;
+        const auto buf = reinterpret_cast<char *>(pc);
         for (int i = 5; i <= 13; i++) {
             int box_idx = __get_section_offset_step(i, idx);
             int size = (i == 13) ? 2000 : 3968;
@@ -206,17 +168,17 @@ namespace rs {
         }
         fprintf(stderr, "Opening tmp file\n");
         FILE *f = fopen("/tmp/rs.sav", "w");
-        char* save_data = (char*) &fpc;
-        fwrite(save_data, sizeof(struct file), 1, f);
+        const auto save_data = reinterpret_cast<char *>(&fpc);
+        fwrite(save_data, sizeof(struct file_raw), 1, f);
         return 0;
     }
 
-    int get_bag_items(struct file* fp, enum category category, struct rs_item** items) {
+    int get_bag_items(struct file_raw* fp, enum category category, struct rs_item** items) {
         int count = 0;
         struct item* list = NULL;
         int list_total = 0;
         int rs_item_size = sizeof(struct rs_item);
-        struct player_team* team = get_player_team(fp);
+        struct player_team_raw* team = get_player_team(fp);
 
         switch (category) {
             case ITEM_CATEGORY:
@@ -259,9 +221,9 @@ namespace rs {
         return count;
     }
 
-    int set_bag_item(struct file* fp, struct rs_item *target) {
+    int set_bag_item(struct file_raw* fp, struct rs_item *target) {
         // This is a reference, not a copy
-        struct player_team* team = get_player_team(fp);
+        struct player_team_raw* team = get_player_team(fp);
 
         struct item* list = NULL;
         int list_size = 0;

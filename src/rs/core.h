@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <linux/types.h>
+#include "api.h"
 
 namespace rs {
     /* Gen III Save Data Structure
@@ -42,7 +43,7 @@ namespace rs {
     };
 
 
-    // 12 byte substructure in pokemon.data
+    // 12 byte substructure in pokemon_raw.data
     struct poke_data_t {
         char data[12];
     };
@@ -55,10 +56,12 @@ namespace rs {
         __u8 friendship;
         char padding[2];
     };
+
     struct poke_attack {
         __u16 moves[4];
         __u8 pp[4];
     };
+
     struct poke_ev {
         __u8 hp;
         __u8 atk;
@@ -83,7 +86,7 @@ namespace rs {
     };
 
     // Pokemon Structure
-    struct pokemon {
+    struct pokemon_raw {
         __u32 personality;
         __u32 ot_id;
         char nickname[10];
@@ -108,7 +111,7 @@ namespace rs {
 
 
     // SECTION 0
-    struct trainer_info {
+    struct trainer_info_raw {
         // Namme of the player - 7 chars, 8th is always 0xff
         char name[8];
         // 0x00 is boy 0x01 is girl
@@ -129,15 +132,15 @@ namespace rs {
     };
 
 
-
     // SECTION 1
     struct item {
         __u16 index;
         __u16 quantity;
     };
-    struct player_team {
+
+    struct player_team_raw {
         __u32 team_size;
-        struct pokemon pokemon[6];
+        struct pokemon_raw pokemon[6];
         // XOR with security key to get real value
         __u32 money;
         // XOR with lower 2 bytes of security key to get real value
@@ -178,7 +181,7 @@ namespace rs {
         struct poke_data_t data[4];
     };
 
-    struct pc_buffer {
+    struct pc_buffer_raw {
         // zero indexed
         __u32 box_idx;
         // Left to right, top to bottom order
@@ -187,7 +190,6 @@ namespace rs {
         char box_names[126];
         // 1 byte for each wallpaper
         char wallpaper[14];
-
     };
 
 
@@ -197,30 +199,53 @@ namespace rs {
         __u16 pokemon;
         char name[10];
     };
+
     struct hall_of_fame {
-        // 50 teams of 6 pokemon can be stored
+        // 50 teams of 6 pokemon_raw can be stored
         struct hof_pokemon teams[300];
         char padding[2192];
     };
+
     struct mystery_gift {
         char buf[4096];
     };
+
     struct recorded_battle {
         char buf[4096];
     };
 
-    struct file {
+    struct file_raw {
         struct section_t save_a[14];
         struct section_t save_b[14];
         struct hall_of_fame hof;
         struct mystery_gift gifts;
         struct recorded_battle battle;
+        /**
+         * Parse, decode and unencrypt a save file. It first maps
+         * it to a file_raw struct, and then extracts relevant data
+         * into a struct savefile. The struct savefile can be directly edited,
+         * and then passed to save_file() to convert it back to a raw savefile.
+         * @param path Filepath of the Ruby/Sapphire Savefile
+         * @return A decoded and unencrypted struct file
+         */
+        static struct file_raw load_save_file(const std::string &path);
+        /*
+         * Encode, Encrypt and write out a fp.
+         * A fp, which is typically loaded into memory with a load_save_file call,
+         * EXTRACTS all the data in a save file in a decoded and decrypted format.
+         * We apply the reverse here and save it
+         * This works because at any given point, a file struct is in the correct order
+         * If you are adding things to the file you SHOULD use the above methods which 
+         * also handle the le conversion, encryption etc. 
+         * DIRECTLY TOUCHING THE STRUCT WILL RUIN THE SAVE FILE
+         */
+        int save_file(const file_raw &save);
+        trainer_info_raw get_trainer_info(file_raw fp);
+        player_team_raw get_player_team(file_raw fp);
+        pc_buffer_raw get_pc(file_raw fp);
+
     };
 
-    void load_save_file(std::string path, struct file** fp);
-    struct trainer_info* get_trainer_info(struct file* fp);
-    struct player_team* get_player_team(struct file* fp);
-    struct pc_buffer* get_pc(struct file* fp);
 
     enum category {
         BAD_CATEGORY,
@@ -230,16 +255,18 @@ namespace rs {
         TM_CATEGORY,
         BERRY_CATEGORY,
     };
+
     struct rs_item {
-        const char* name;
+        const char *name;
         __u8 bag_category;
         __u16 id;
         __u16 quantity;
     };
-    int save_file(struct file* fp);
 
-    // Public functions to use to operate on a struct file
 
-    int get_bag_items(struct file* fp, enum category category, struct rs_item** item);
-    int set_bag_item(struct file* fp, struct rs_item* item);
+    // Public functions to use to operate on a struct savefile
+
+    int get_bag_items(struct file_raw *fp, enum category category, struct rs_item **item);
+
+    int set_bag_item(struct file_raw *fp, struct rs_item *item);
 }

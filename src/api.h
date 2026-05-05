@@ -1,9 +1,6 @@
 #pragma once
 #include <string>
 
-struct G_Pokemon {
-};
-
 struct PokeAPI {
     virtual void box_view(int num) {};
     virtual void box_edit(int num, int idx) {};

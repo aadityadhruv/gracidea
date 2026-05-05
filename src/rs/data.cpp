@@ -1,4 +1,3 @@
-#include "util.h"
 #include "data.h"
 
 namespace rs {
