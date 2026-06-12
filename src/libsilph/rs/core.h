@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <linux/types.h>
-#include "api.h"
 
 namespace rs {
     /* Gen III Save Data Structure

@@ -6,9 +6,18 @@ project(silph VERSION 1.0
 
 set(CMAKE_BUILD_TYPE Debug)
 message("Compiler: ${CMAKE_CXX_COMPILER_ID}")
-add_subdirectory(src)
-set_property(TARGET silph PROPERTY CXX_STANDARD 20)
-target_compile_options(silph PRIVATE
+
+
+# Build libsilph
+add_library(silph)
+add_subdirectory(src/libsilph)
+
+
+# Build scope CLI
+add_executable(scope)
+add_subdirectory(src/scope)
+set_property(TARGET scope PROPERTY CXX_STANDARD 20)
+target_compile_options(scope PRIVATE
     -Wall
     -Wextra
     -Wno-double-promotion
