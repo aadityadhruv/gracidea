@@ -1,6 +1,6 @@
-#ifndef GRACIDEA_LIB_H
-#define GRACIDEA_LIB_H
-
+#pragma once
+#include <array>
+#include <vector>
 #include "core.h"
 
 namespace rs {
@@ -79,7 +79,7 @@ namespace rs {
 
     class PCBox {
     public:
-        std::array<Pokemon, 30>;
+        std::array<Pokemon, 30> pokemon;
         std::string box_name;
         int8_t wallpaper;
     };
@@ -101,4 +101,3 @@ namespace rs {
         file_raw raw_source;
     };
 }
-#endif //GRACIDEA_LIB_H

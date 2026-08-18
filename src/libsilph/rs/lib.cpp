@@ -1,4 +1,5 @@
 #include "lib.h"
+#include "core.h"
 
 namespace rs {
     Savefile::Savefile(const std::string& path) {
@@ -7,6 +8,6 @@ namespace rs {
     }
 
     void Savefile::save(std::string path) {
-        save_file(this->raw_source);
+        this->raw_source.save_file();
     }
 }

@@ -1,6 +1,13 @@
 #pragma once
 #include <string>
 #include <linux/types.h>
+/* Gen III (RS) Low Level Interface
+ *
+ * core contains the low-level interface to the save file. It maintains
+ * byte structure, and is usually read/written to from a higher level interface,
+ * such as the Gen 3 save interface defined in lib.c
+ *
+ */
 
 namespace rs {
     /* Gen III Save Data Structure
@@ -219,6 +226,9 @@ namespace rs {
         struct hall_of_fame hof;
         struct mystery_gift gifts;
         struct recorded_battle battle;
+        trainer_info_raw get_trainer_info(file_raw fp);
+        player_team_raw get_player_team(file_raw fp);
+        pc_buffer_raw get_pc(file_raw fp);
         /**
          * Parse, decode and unencrypt a save file. It first maps
          * it to a file_raw struct, and then extracts relevant data
@@ -238,10 +248,7 @@ namespace rs {
          * also handle the le conversion, encryption etc. 
          * DIRECTLY TOUCHING THE STRUCT WILL RUIN THE SAVE FILE
          */
-        int save_file(const file_raw &save);
-        trainer_info_raw get_trainer_info(file_raw fp);
-        player_team_raw get_player_team(file_raw fp);
-        pc_buffer_raw get_pc(file_raw fp);
+        int save_file();
 
     };
 
